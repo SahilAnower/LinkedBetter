@@ -4,7 +4,6 @@ export const connectDB = async () => {
   try {
     const mongoUri = process.env.MONGO_URI;
     const dbName = process.env.DB_NAME;
-    // console.log(mongoUri);
     await mongoose.connect(`${mongoUri}/${dbName}`, {
       maxPoolSize: 10,
       socketTimeoutMS: 1000,

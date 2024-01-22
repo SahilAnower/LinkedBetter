@@ -4,6 +4,11 @@ import cors from "cors";
 
 dotenv.config();
 
+import { connectDB } from "./config/db.config.js";
+import { authenticate } from "./middlewares/auth.middleware.js";
+import { errorHandler } from "./middlewares/error-handler.middleware.js";
+import authRoutes from "./routes/auth.routes.js";
+
 const app = express();
 
 app.use(express.json());
@@ -19,16 +24,17 @@ app.use(function (req, res, next) {
   next();
 });
 
-// app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 
-// app.use(authenticate);
+app.use(authenticate);
 
-// app.use("/api/payment-providers", paymentProviderRoutes);
+// non - auth routes
 
-// app.use(errorHandler);
+app.use(errorHandler);
 
 const port = process.env.PORT || 5060;
 
 app.listen(port, async () => {
+  await connectDB();
   console.log(`Server running on port ${port}`);
 });
