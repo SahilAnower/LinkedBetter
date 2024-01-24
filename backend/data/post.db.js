@@ -15,12 +15,53 @@ export const findAllPosts = async (searchPayload, filterPayload = null) => {
   try {
     const { page, pageSize } = filterPayload;
     const skip = (page - 1) * pageSize;
-    const res = await PostModel.find(searchPayload, filterPayload)
-      .sort({
-        createdAt: -1,
-      })
-      .skip(skip)
-      .limit(pageSize);
+    const pipeline = [
+      {
+        $match: searchPayload,
+      },
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+      {
+        $skip: skip,
+      },
+      {
+        $limit: pageSize,
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $addFields: {
+          user: {
+            $arrayElemAt: ["$user", 0],
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "comments",
+          localField: "_id",
+          foreignField: "post",
+          as: "comments",
+        },
+      },
+      {
+        $project: {
+          "user._id": 0,
+          "user.encryptedPassword": 0,
+          "user.refreshToken": 0,
+        },
+      },
+    ];
+    const res = await PostModel.aggregate(pipeline);
     if (res) {
       return res;
     }

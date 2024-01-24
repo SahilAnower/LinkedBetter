@@ -1,5 +1,7 @@
 import { findAllFollowerFollowings } from "../data/followerFollowing.db.js";
 import { createPost, findAllPosts } from "../data/post.db.js";
+import { CustomError } from "../models/CustomError.js";
+import mongoose from "mongoose";
 
 export const postCreateService = async (payload) => {
   try {
@@ -15,7 +17,7 @@ export const postCreateService = async (payload) => {
 
 export const getAllPostsService = async (searchPayload) => {
   try {
-    const { user, page, pageSize } = searchPayload;
+    let { user, page, pageSize } = searchPayload;
     if (!user) {
       throw new CustomError("userId is required field.", 400);
     }
@@ -25,7 +27,6 @@ export const getAllPostsService = async (searchPayload) => {
     if (!pageSize || pageSize <= 0) {
       pageSize = 10;
     }
-    // todo: get all followings list
     let followingLists = await findAllFollowerFollowings(
       {
         follower: user,
@@ -34,9 +35,10 @@ export const getAllPostsService = async (searchPayload) => {
         following: 1,
       }
     );
-    followingLists = followingLists.map((following) => following.following);
-    followingLists.push(user);
-    // todo: get all posts of followings + mine
+    followingLists = followingLists.map(
+      (following) => new mongoose.Types.ObjectId(following.following())
+    );
+    followingLists.push(new mongoose.Types.ObjectId(user));
     const posts = await findAllPosts(
       {
         user: {
@@ -48,10 +50,6 @@ export const getAllPostsService = async (searchPayload) => {
         pageSize,
       }
     );
-    // todo: populate all comments of posts
-    // for (const post of posts) {
-    //     post.comments = await
-    // }
     return posts;
   } catch (error) {
     throw error;
