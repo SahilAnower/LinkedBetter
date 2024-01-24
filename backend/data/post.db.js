@@ -54,10 +54,58 @@ export const findAllPosts = async (searchPayload, filterPayload = null) => {
         },
       },
       {
-        $project: {
-          "user._id": 0,
-          "user.encryptedPassword": 0,
-          "user.refreshToken": 0,
+        $unwind: "$comments",
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "comments.user",
+          foreignField: "_id",
+          as: "userDetails",
+        },
+      },
+      {
+        $addFields: {
+          userDetails: {
+            $arrayElemAt: ["$userDetails", 0],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          content: {
+            $first: "$content",
+          },
+          images: {
+            $first: "$images",
+          },
+          likeCount: {
+            $first: "$likeCount",
+          },
+          updatedAt: {
+            $first: "$updatedAt",
+          },
+          createdAt: {
+            $first: "$createdAt",
+          },
+          comments: {
+            $push: {
+              _id: "$comments._id",
+              content: "$comments.content",
+              image: "$comments.image",
+              userName: "$userDetails.name",
+              userId: "$userDetails._id",
+              updatedAt: "$comments.updatedAt",
+              createdAt: "$comments.createdAt",
+            },
+          },
+          userName: {
+            $first: "$user.name",
+          },
+          userId: {
+            $first: "$user._id",
+          },
         },
       },
     ];
