@@ -103,3 +103,20 @@ export const deletePostService = async (id, userId) => {
     throw error;
   }
 };
+
+export const isPostExists = async (postId) => {
+  try {
+    const savedPost = await findPost(
+      { _id: postId },
+      {
+        _id: 1,
+      }
+    );
+    if (savedPost) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    throw error;
+  }
+};
