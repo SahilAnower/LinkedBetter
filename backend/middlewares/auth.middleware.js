@@ -14,11 +14,11 @@ export const authenticate = async (req, res, next) => {
       throw new CustomError("Authorization token must be provided", 401);
     }
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    const user = await findUser({ _id: decodedToken?.userId });
-    if (!user) {
-      throw new CustomError("User not found", 401);
-    }
-    req.user = user;
+    // const user = await findUser({ _id: decodedToken?.userId });
+    // if (!user) {
+    //   throw new CustomError("User not found", 401);
+    // }
+    req.userId = decodedToken?.userId;
     next();
   } catch (error) {
     next(error);
