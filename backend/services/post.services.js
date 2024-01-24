@@ -1,5 +1,11 @@
 import { findAllFollowerFollowings } from "../data/followerFollowing.db.js";
-import { createPost, findAllPosts } from "../data/post.db.js";
+import {
+  createPost,
+  deletePost,
+  findAllPosts,
+  findPost,
+  updatePost,
+} from "../data/post.db.js";
 import { CustomError } from "../models/CustomError.js";
 import mongoose from "mongoose";
 
@@ -51,6 +57,48 @@ export const getAllPostsService = async (searchPayload) => {
       }
     );
     return posts;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updatePostService = async (id, updatePayload) => {
+  try {
+    const { user } = updatePayload;
+    if (!user || !id) {
+      throw new CustomError("userId and postId are required fields.", 400);
+    }
+    const savedPost = await findPost({ _id: id });
+    if (!savedPost) {
+      throw new CustomError("Post not found with this id.", 404);
+    }
+    if (savedPost?.user.toString() !== user) {
+      throw new CustomError("You are not authorized to edit this post.", 401);
+    }
+    const updatedPost = await updatePost({ _id: id }, updatePayload);
+    return updatedPost;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deletePostService = async (id, userId) => {
+  try {
+    if (!userId || !id) {
+      throw new CustomError("userId and postId are required fields.", 400);
+    }
+    const savedPost = await findPost({ _id: id });
+    if (!savedPost) {
+      throw new CustomError("Post not found with this id.", 404);
+    }
+    if (savedPost?.user.toString() !== userId) {
+      throw new CustomError("You are not authorized to delete this post.", 401);
+    }
+    await deletePost({ _id: id });
+    return {
+      success: true,
+      message: "Post with id: " + id + " was successfully deleted",
+    };
   } catch (error) {
     throw error;
   }

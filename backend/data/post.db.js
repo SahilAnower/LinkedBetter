@@ -83,9 +83,13 @@ export const findPost = async (searchPayload, filterPayload = null) => {
 
 export const updatePost = async (searchPayload, filterPayload) => {
   try {
-    const res = await PostModel.updateOne(searchPayload, filterPayload, {
-      new: true,
-    });
+    const res = await PostModel.findByIdAndUpdate(
+      searchPayload,
+      filterPayload,
+      {
+        new: true,
+      }
+    );
     if (res) {
       return res;
     }
@@ -96,7 +100,7 @@ export const updatePost = async (searchPayload, filterPayload) => {
 
 export const deletePost = async (searchPayload) => {
   try {
-    const res = await PostModel.deleteOne(searchPayload);
+    const res = await PostModel.findByIdAndDelete(searchPayload);
     if (res) {
       return res;
     }
